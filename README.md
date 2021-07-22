@@ -48,8 +48,8 @@ optional arguments:
 Use python3 haha
 	
 ## Setup
-> Copy it to some location on host with Zimbra installation.
-> Run as user **zimbra** or make sure standart Zimra environment variables are available (PATH), script using some of zimbra cli commands and will do nothing if it can not find them.
+Copy it to some location on host with Zimbra installation.
+Run as user **zimbra** or make sure standard Zimra environment variables are available (PATH), script using some of zimbra cli commands and will do nothing if it can not find them.
 
 ---
 Example of local execution with 6 threads:
@@ -64,8 +64,8 @@ python3 zimbra-mail-remover.py -w -p 8888
 21:05:24: Starting http 0.0.0.0 8888...
 ```
 And then make POST request like such: `curl -X POST zimbra.example.com:8000 -d "subject=hello привет test"`<br>
-You will get; "`Accepted post!`" in resonse if querry is correct and there is no script threads running at this time<br>
-"`Wrong post parameters!`" if you've posted paramaters different than `subject` <br>
+You will get; "`Accepted post!`" in resonse if query is correct and there is no script threads running at this time<br>
+"`Wrong post parameters!`" if you've posted parameters different than `subject` <br>
 "`Threads are already active, command ignored.`" if script has already started some workload.<br>
 <br>
 If you want to check run status - do a get request:

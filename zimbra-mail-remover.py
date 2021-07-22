@@ -119,20 +119,20 @@ if __name__ == "__main__":
     "--web",
     action='store_true',
     default=False,
-    help="Add this flag if you want to run web server",
+    help="Add this flag if you want to run web server (defaults: False)",
   )
   parser.add_argument(
     "-l",
     "--listen",
     default="0.0.0.0",
-    help="Specify the IP address on which the server listens (localhost for localhost)",
+    help="Specify the IP address on which the server listens (defaults: *) (localhost for localhost)",
   )
   parser.add_argument(
     "-p",
     "--port",
     type=int,
     default=8000,
-    help="Specify the port on which the server listens",
+    help="Specify the port on which the server listens (defaults: 8000)",
   )
   parser.add_argument(
     "-s",
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     "--threads",
     type=int,
     default=2,
-    help="Specify the number of threads to run",
+    help="Specify the number of threads to run (defaults: 2)",
   )
   args = parser.parse_args()
   # CONTOLS HOW MUCH PROCESSES TO SPAWN

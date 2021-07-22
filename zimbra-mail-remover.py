@@ -39,7 +39,7 @@ class S(BaseHTTPRequestHandler):
     post_body = self.rfile.read(content_len)
     post_vars = parse_qs(post_body.decode('utf-8'))
     logging.info("Parsed parameters %s", post_vars)
-    if "topic" in post_vars:
+    if "subject" in post_vars:
       # check if global lock was acquired aready
       if pslock.locked():
         command = ("ps -aux | grep '[Z]MailboxUtil'")
@@ -51,7 +51,7 @@ class S(BaseHTTPRequestHandler):
         logging.info("Run denied, threadlock not released")
       else:
         self.wfile.write(self._html("Accepted post!"))
-        webthread = threading.Thread(target=spawncmd, args=(post_vars["topic"][0],))
+        webthread = threading.Thread(target=spawncmd, args=(post_vars["subject"][0],))
         webthread.start()
     else:
       self.wfile.write(self._html("Wrong post parameters!"))
@@ -104,7 +104,6 @@ def spawncmd(subject):
   allmails2 = [allmails[(i*len(allmails))//threadcount:((i+1)*len(allmails))//threadcount] for i in range(threadcount)]
   with concurrent.futures.ThreadPoolExecutor(max_workers=threadcount) as executor2:
     for maillist in allmails2:
-      print('out ', maillist)
       executor2.submit(searchUserMessages, maillist, subject)
   if args.web:
     # unlock new threads when all done
@@ -140,9 +139,16 @@ if __name__ == "__main__":
     "--subject",
     help="If not running web service - specify subject here manually",
   )
+  parser.add_argument(
+    "-t",
+    "--threads",
+    type=int,
+    default=2,
+    help="Specify the number of threads to run",
+  )
   args = parser.parse_args()
   # CONTOLS HOW MUCH PROCESSES TO SPAWN
-  threadcount = 4
+  threadcount = args.threads
   # threading evenly distrbutes all of the mailboxes to each thead (ex: 5300 boxes / 6 threads = 883 boxes per thread ) 
   # resourse usage of those threads heavily depends on number of mailboxes on your server and their age (old ones are mail-heavy)
   # it's usually takes 90-120% of core time for each thread (java thing) so take care to sanely distribute workload  

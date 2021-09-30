@@ -82,7 +82,8 @@ If you want to check run status - do a get request:
 `curl zimbra.example.com:8000`
 
 ---
-Example systemd service unit, can be used to start service after restarts or crashes.
+Example systemd service unit, sets 4 threads and web-server, can be used to start service after restarts or crashes.   
+`/etc/systemd/system/zimbra-remover.service`   
 ```
 [Unit]
 Description=zimbra-remover service
@@ -90,10 +91,13 @@ After=syslog.target network.target
 
 [Service]
 Type=simple
+User=zimbra
 WorkingDirectory=/opt/zimbra-mail-remover
-ExecStart=python3 /opt/zimbra-mail-remover/zimbra-mail-remover.py
+ExecStart=python3 /opt/zimbra-mail-remover/zimbra-mail-remover.py -w -t 4
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 ```
+
+You can watch service logs: `journalctl -u zimbra-remover -f`   

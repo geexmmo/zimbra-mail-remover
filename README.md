@@ -52,6 +52,16 @@ Copy it to some location on host with Zimbra installation.
 Run as user **zimbra** or make sure standard Zimra environment variables are available (PATH), script using some of zimbra cli commands and will do nothing if it can not find them.
 
 ---
+settings.py
+contains:      
+`secretkey` that will be used for authorization on web form   
+`min_symbols` that limits 'subject' field on web form to certain amount of symbols so you wouldn't accidenly delete all mails passing something like single letter (ex 'a').
+```
+Settings = {'secretkey':'sbXG7C9RiBgHs',
+            'min_symbols': 4
+            }
+```
+---
 Example of local execution with 6 threads:
 ```
 python3 zimbra-mail-remover.py -t 6 -s "hello привет test"
@@ -68,5 +78,22 @@ You will get; "`Accepted post!`" in resonse if query is correct and there is no 
 "`Wrong post parameters!`" if you've posted parameters different than `subject` <br>
 "`Threads are already active, command ignored.`" if script has already started some workload.<br>
 <br>
-If you want to check run status - do a get request:
+If you want to check run status - do a get request:   
 `curl zimbra.example.com:8000`
+
+---
+Example systemd service unit, can be used to start service after restarts or crashes.
+```
+[Unit]
+Description=zimbra-remover service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/zimbra-mail-remover
+ExecStart=python3 /opt/zimbra-mail-remover/zimbra-mail-remover.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```

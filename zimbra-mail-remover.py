@@ -3,6 +3,8 @@ import logging
 import argparse
 import threading
 import concurrent.futures
+from typing import Set
+from settings import Settings
 from subprocess import PIPE, run
 from urllib.parse import parse_qs
 from socketserver import ThreadingMixIn
@@ -20,7 +22,16 @@ class S(BaseHTTPRequestHandler):
     self.end_headers()
 
   def _html(self, message):
-    content = f"<html><body><h5>{message}</h5></br></body></html>"
+    content = f"""
+<!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+    </head>
+    <body>
+      <h5>{message}</h5>
+    </body>
+  </html>"""
     return content.encode("utf8")
 
   def do_GET(self):
@@ -28,8 +39,17 @@ class S(BaseHTTPRequestHandler):
     command = ("ps -aux | grep '[Z]MailboxUtil'")
     activepids = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
     convpids = [str(item) for item in activepids.stdout.splitlines()]
-    htmlpids = "<h3>Commands are only received on POST request to this page.</h3><br>Running processes if any will be shown above:<br><br>"
-    htmlpids += "<hr>".join(convpids)
+    htmlpids = "<h3>Commands are only received on POST request to this page. Simple form will be shown above only if there is no active proccesses.</h3>"
+    if convpids:
+      htmlpids += "<br>Running processes:<br><hr>".join(convpids)
+    else:
+      htmlpids += """<br><form action="/" method="post">
+        <label for="secretkey">key:</label>
+        <input type="text" id="secretkey" name="secretkey"><br><br>
+        <label for="subject">subject:</label>
+        <input type="text" id="subject" name="subject"><br><br>
+        <input type="submit" value="Go">
+        </form>"""
     self.wfile.write(self._html(htmlpids))
     # self.wfile.write(self._html("Hello, try sending post request to this location"))
 
@@ -38,23 +58,29 @@ class S(BaseHTTPRequestHandler):
     content_len = int(self.headers.get('content-length', 0))
     post_body = self.rfile.read(content_len)
     post_vars = parse_qs(post_body.decode('utf-8'))
-    logging.info("Parsed parameters %s", post_vars)
-    if "subject" in post_vars:
-      # check if global lock was acquired aready
-      if pslock.locked():
-        command = ("ps -aux | grep '[Z]MailboxUtil'")
-        activepids = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
-        convpids = [str(item) for item in activepids.stdout.splitlines()]
-        htmlpids = "<h2>Threads are already active, command ignored.</h2><br><br>"
-        htmlpids += "<hr>".join(convpids)
-        self.wfile.write(self._html(htmlpids))
-        logging.info("Run denied, threadlock not released")
+    logging.info("Parsed parameters:") 
+    for i in post_vars:
+      logging.info(post_vars)
+      logging.info(post_vars[i][0].encode('utf-8'))
+    if "secretkey" in post_vars and post_vars["secretkey"][0] == Settings["secretkey"]:  
+      if "subject" in post_vars and len(post_vars["subject"][0]) >= Settings["min_symbols"]:
+        # check if global lock was acquired aready
+        if pslock.locked():
+          command = ("ps -aux | grep '[Z]MailboxUtil'")
+          activepids = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
+          convpids = [str(item) for item in activepids.stdout.splitlines()]
+          htmlpids = "<h2>Threads are already active, command ignored.</h2><br><br>"
+          htmlpids += "<hr>".join(convpids)
+          self.wfile.write(self._html(htmlpids))
+          logging.info("Run denied, threadlock not released")
+        else:
+          self.wfile.write(self._html("Accepted post!"))
+          webthread = threading.Thread(target=spawncmd, args=(post_vars["subject"][0],))
+          webthread.start()
       else:
-        self.wfile.write(self._html("Accepted post!"))
-        webthread = threading.Thread(target=spawncmd, args=(post_vars["subject"][0],))
-        webthread.start()
+        self.wfile.write(self._html("Wrong post parameters!"))
     else:
-      self.wfile.write(self._html("Wrong post parameters!"))
+      self.wfile.write(self._html("Poshel nahui"))
 
 
 def webserverrun(server_class=ThreadingSimpleServer, handler_class=S, addr="localhost", port=8000):

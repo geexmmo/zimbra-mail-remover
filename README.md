@@ -93,7 +93,7 @@ After=syslog.target network.target
 Type=simple
 User=zimbra
 WorkingDirectory=/opt/zimbra-mail-remover
-ExecStart=python3 /opt/zimbra-mail-remover/zimbra-mail-remover.py -w -t 4
+ExecStart=/bin/bash -l -c 'python3 /opt/zimbra-mail-remover/zimbra-mail-remover.py -w -t 4'
 Restart=always
 
 [Install]

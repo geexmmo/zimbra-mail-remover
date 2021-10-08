@@ -80,7 +80,7 @@ class S(BaseHTTPRequestHandler):
       else:
         self.wfile.write(self._html("Wrong post parameters!"))
     else:
-      self.wfile.write(self._html("Poshel nahui"))
+      self.wfile.write(self._html("Run denied"))
 
 
 def webserverrun(server_class=ThreadingSimpleServer, handler_class=S, addr="localhost", port=8000):
@@ -93,6 +93,7 @@ def webserverrun(server_class=ThreadingSimpleServer, handler_class=S, addr="loca
 def getAllUsers():
   command = 'zmprov -l gaa'
   result = run(command, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
+  logging.info("env error?: %s", result.stderr)
   return result.stdout.splitlines() # returns list of emails
 
 def searchUserMessages(maillist, subject):

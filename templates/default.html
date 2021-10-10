@@ -1,0 +1,30 @@
+<!doctype html>
+<title>{{ title }}</title>
+Default page shown here {message}
+
+
+{% if post and not processes%}
+<h1>GOT POST</h1>
+{% elif post %}
+<h1>Can't accept form.</h1>
+<h1>Please wait for running proccesses to complete:</h1>
+{% autoescape false %}
+{{ processes }}
+{% endautoescape %}
+{% endif %}
+
+{% if not post and processes %}
+{% autoescape false %}
+<h1>Can't show form.</h1>
+<h1>Please wait for running proccesses to complete: </h1>
+{{ processes }}
+{% endautoescape %}
+{% elif not post %}
+<form action="/" method="post">
+    <label for="secretkey">key:</label>
+    <input type="text" id="secretkey" name="secretkey"><br><br>
+    <label for="subject">subject:</label>
+    <input type="text" id="subject" name="subject"><br><br>
+    <input type="submit" value="Go">
+</form>
+{% endif %}
